@@ -1,0 +1,10 @@
+[package]
+name = "circ"
+version = "0.1.0"
+authors = ["Oliver Rickard <ocrickard@gmail.com>"]
+
+[dependencies]
+structopt = "0.2"
+clap = { version = "2.20", default-features = false }
+ring = "0.13.0-alpha5"
+termion = "*"
