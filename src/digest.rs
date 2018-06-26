@@ -64,9 +64,14 @@ pub fn run_digest(digest: &Digest) -> Result<String, String> {
   {
     let mut file = match File::open(file_path) {
       Ok(file) => file,
-      // TODO: don't use panic here.
-      Err(why) => panic!("Couldn't open {}: {}", file_path.display(),
-                         why.description())
+      Err(msg) => {
+          return Err(format!(
+          "Couldn't open {red}{file_path}{reset}:\n\t{red}{error_msg}{reset}",
+            file_path = file_path.display(),
+            error_msg = msg.description(),
+            reset = style::Reset,
+            red = color::Fg(color::Red)));
+        }
     };
 
     let mut chunk = vec![0u8; 128 * 1024];
@@ -74,9 +79,14 @@ pub fn run_digest(digest: &Digest) -> Result<String, String> {
       match file.read(&mut chunk[..]) {
         Ok(0) => break,
         Ok(bytes_read) => ctx.update(&chunk[0..bytes_read]),
-        // TODO: don't use panic here
-        Err(why) => panic!("Couldn't open {}: {}", file_path.display(),
-                       why.description())
+        Err(msg) => {
+          return Err(format!(
+          "Couldn't open {red}{file_path}{reset}:\n\t{red}{error_msg}{reset}",
+            file_path = file_path.display(),
+            error_msg = msg.description(),
+            reset = style::Reset,
+            red = color::Fg(color::Red)));
+        }
       }
     }
   }
@@ -86,31 +96,39 @@ pub fn run_digest(digest: &Digest) -> Result<String, String> {
   if let Some(ref expected_digest_hex) = digest.expected_digest_hex {
     let matched = match hex::decode_hex_buffer(expected_digest_hex.as_bytes()) {
       Ok(expected) => actual_digest.as_ref() == &expected[..],
-      Err(msg) => panic!("Syntactically invalid digest: {} in {}", msg,
-                         &expected_digest_hex),
+      Err(msg) => {
+        return Err(format!(
+          "Syntactically invalid digest: \n\t{error_msg} \nin supposedly hex-encoded input: \n\t{red}{expected_digest_hex}{reset}",
+            error_msg = msg,
+            expected_digest_hex = &expected_digest_hex,
+            reset = style::Reset,
+            red = color::Fg(color::Red)))
+      },
     };
 
     match matched {
-      true => Ok(encode_digest_to_string(actual_digest)),
-      false => Err(format!("
-        {}Digest mismatch{}! expected:\n\t\t{}{}{}\n\tbut calculated:\n\t\t{}{}{}\n\tYour data may be {}corrupt{} or may have been {}maliciously altered{}. {}Beware.{}", 
-        style::Bold, 
-        style::Reset, 
-        color::Fg(color::Green), 
-        expected_digest_hex, 
-        style::Reset,
-        color::Fg(color::Red), 
-        encode_digest_to_string(actual_digest),
-        style::Reset,
-        color::Fg(color::Yellow),
-        style::Reset,
-        color::Fg(color::Red),
-        style::Reset,
-        style::Bold,
-        style::Reset))
+      true => Ok(format!(
+        "{green}Digest match{reset}. calculated:\n\t{green}{actual_digest}{reset}",
+          actual_digest = encode_digest_to_string(actual_digest),
+          green = color::Fg(color::Green),
+          reset = style::Reset)),
+      false => Err(format!(
+        "{bold}Digest mismatch{reset}! expected:\n\t{green}{expected}{reset}\nbut calculated:\n\t{red}{actual}{reset}\nYour data may be {yellow}corrupt{reset} or may have been {red}maliciously altered{reset}. {bold}Beware.{reset}",
+          actual = encode_digest_to_string(actual_digest),
+          expected = expected_digest_hex,
+          bold = style::Bold,
+          reset = style::Reset,
+          red = color::Fg(color::Red),
+          green = color::Fg(color::Green),
+          yellow = color::Fg(color::Yellow)))
     }
   } else {
-    Ok(encode_digest_to_string(actual_digest))
+    Ok(format!(
+      "{green}Successfully computed{reset}:\n\t{actual_digest}",
+        actual_digest = encode_digest_to_string(actual_digest),
+        green = color::Fg(color::Green),
+        reset = style::Reset
+      ))
   }
 }
 

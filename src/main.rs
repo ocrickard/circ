@@ -14,7 +14,9 @@ mod digest;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "circ")]
 struct Opt {
-  #[structopt(short = "d", long = "debug")]
+  #[structopt(
+    short = "d", 
+    long = "debug")]
   debug: bool,
 
   #[structopt(subcommand)]

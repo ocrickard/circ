@@ -1,3 +1,6 @@
+extern crate termion;
+
+use self::termion::{color, style};
 
 fn decode_hex_byte(byte: u8) -> Result<u8, String> {
   // From Brian Smith's ring project example
@@ -8,7 +11,11 @@ fn decode_hex_byte(byte: u8) -> Result<u8, String> {
   } else if byte >= b'A' && byte <= b'F' {
     Ok(byte - b'A' + 10u8)
   } else {
-    Err(format!("Invalid hex digit '{}'", byte as char))
+    Err(format!(
+      "Invalid hex digit '{red}{byte}{reset}'",
+        byte = byte as char,
+        reset = style::Reset,
+        red = color::Fg(color::Red)))
   }
 }
 
@@ -18,7 +25,11 @@ fn encode_hex_byte(byte: &u8) -> Result<u8, String> {
   static HEX_CONVERSION_TABLE: &'static [u8; 16] = b"0123456789abcdef";
 
   if *byte as usize >= HEX_CONVERSION_TABLE.len() {
-    Err(format!("Invalid byte: {}", byte))
+    Err(format!(
+      "Invalid byte: {red}{byte}{reset}",
+        byte = byte,
+        reset = style::Reset,
+        red = color::Fg(color::Red)))
   } else {
     Ok(HEX_CONVERSION_TABLE[*byte as usize])
   }
@@ -27,7 +38,10 @@ fn encode_hex_byte(byte: &u8) -> Result<u8, String> {
 // Take a hex-encoded utf8 buffer and convert to a binary buffer.
 pub fn decode_hex_buffer(buffer: &[u8]) -> Result<Vec<u8>, String> {
   if buffer.len() % 2 != 0 {
-    return Err("Hex string does not have an even number of digits".to_string());
+    return Err(format!(
+      "{red}Hex string does not have an even number of digits.{reset}",
+        reset = style::Reset,
+        red = color::Fg(color::Red)));
   }
 
   // Each hex byte holds 4 bits of information for the binary buffer.
