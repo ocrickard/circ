@@ -31,6 +31,9 @@ Principle goals of *circ*:
   easy to understand what is going on, and what has happened after each
   command.
 
+*circ* is a work in progress. It is not recommended for use.
+-------
+
 License
 -------
 
