@@ -1,12 +1,13 @@
 extern crate ring;
+extern crate termion;
 
+use hex;
 use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write, stdout, stderr};
 use std::path::PathBuf;
 use std::str;
-use hex;
-
+use self::termion::{color, style};
 
 arg_enum! {
   #[derive(Debug)]
@@ -91,7 +92,22 @@ pub fn run_digest(digest: &Digest) -> Result<String, String> {
 
     match matched {
       true => Ok(encode_digest_to_string(actual_digest)),
-      false => Err(format!("Digest mismatch, expected {} but calculated {}", expected_digest_hex, encode_digest_to_string(actual_digest)))
+      false => Err(format!("
+        {}Digest mismatch{}! expected:\n\t\t{}{}{}\n\tbut calculated:\n\t\t{}{}{}\n\tYour data may be {}corrupt{} or may have been {}maliciously altered{}. {}Beware.{}", 
+        style::Bold, 
+        style::Reset, 
+        color::Fg(color::Green), 
+        expected_digest_hex, 
+        style::Reset,
+        color::Fg(color::Red), 
+        encode_digest_to_string(actual_digest),
+        style::Reset,
+        color::Fg(color::Yellow),
+        style::Reset,
+        color::Fg(color::Red),
+        style::Reset,
+        style::Bold,
+        style::Reset))
     }
   } else {
     Ok(encode_digest_to_string(actual_digest))
