@@ -6,7 +6,7 @@ extern crate structopt;
 extern crate clap;
 
 use structopt::StructOpt;
-use std::io::Write;
+use std::process::exit;
 
 mod hex;
 mod digest;
@@ -33,14 +33,8 @@ fn main() {
 
   match matches.command {
     Command::Digest(digest) => {
-      match digest::run_digest(&digest) {
-        Ok(x) => {
-          let _ = writeln!(&mut std::io::stdout(), "{}", x);
-        },
-        Err(s) => {
-          let _ = writeln!(&mut std::io::stderr(), "{}", s);
-          std::process::exit(1)
-        }
+      if !digest::run_digest_and_print(&digest) {
+        exit(1)
       }
     }
   }

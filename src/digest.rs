@@ -2,7 +2,7 @@ extern crate ring;
 
 use std::error::Error;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write, stdout, stderr};
 use std::path::PathBuf;
 use std::str;
 use hex;
@@ -95,6 +95,19 @@ pub fn run_digest(digest: &Digest) -> Result<String, String> {
     }
   } else {
     Ok(encode_digest_to_string(actual_digest))
+  }
+}
+
+pub fn run_digest_and_print(digest: &Digest) -> bool {
+  match run_digest(&digest) {
+    Ok(x) => {
+      let _ = writeln!(&mut stdout(), "{}", x);
+      true
+    },
+    Err(s) => {
+      let _ = writeln!(&mut stderr(), "{}", s);
+      false
+    }
   }
 }
 
